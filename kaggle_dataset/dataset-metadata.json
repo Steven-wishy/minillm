@@ -1,0 +1,9 @@
+{
+  "title": "MiniLLM Medium Dataset",
+  "id": "shakuji/minillm-medium-dataset",
+  "licenses": [
+    {
+      "name": "CC0-1.0"
+    }
+  ]
+}

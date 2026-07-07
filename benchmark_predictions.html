@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Comparison: LFM 230M Thinking vs. Gemma 4 12B Thinking</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: rgba(17, 24, 39, 0.7);
+            --border-glow: rgba(59, 130, 246, 0.3);
+            --primary: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #60a5fa, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent-purple));
+        }
+
+        .grid-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.2fr 1.2fr;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.2fr 1.2fr;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background-color 0.2s;
+        }
+
+        .grid-row:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .benchmark-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .benchmark-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .benchmark-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 0.95rem;
+            width: fit-content;
+        }
+
+        .score-base {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .score-lfm-think {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .score-gemma {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Visual bar styles */
+        .comparison-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 15px;
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bar-label {
+            width: 220px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .bar-track {
+            flex-grow: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease-out;
+        }
+
+        .bar-fill-base { background: #ef4444; }
+        .bar-fill-lfm { background: var(--accent-green); }
+        .bar-fill-gemma { background: var(--primary); }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-header, .grid-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 15px 0;
+            }
+            .grid-header { display: none; }
+            .score-badge { width: 100%; box-sizing: border-box; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>LFM 230M Thinking vs. Gemma 4 12B Thinking</h1>
+    <div class="subtitle">
+        Performance projection benchmarks: running a locally optimized 230M active reasoning model (with sandbox self-correction and 30k training) against Google's server-class 12B thinking model.
+    </div>
+
+    <div class="dashboard">
+        <div class="panel">
+            <div class="grid-header">
+                <div>Benchmark / Domain</div>
+                <div>LFM 230M Base</div>
+                <div>LFM 230M Think (30k)</div>
+                <div>Gemma 4 12B Think</div>
+            </div>
+
+            <!-- Domain Coding -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">Domain Coding</span>
+                    <span class="benchmark-desc">Three.js, OpenSCAD, retro games development & canvas mechanics</span>
+                </div>
+                <div><span class="score-badge score-base">0.5%</span></div>
+                <div><span class="score-badge score-lfm-think">85.0%</span></div>
+                <div><span class="score-badge score-gemma">72.0%</span></div>
+            </div>
+
+            <!-- SWE-Bench -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">SWE-Bench Lite</span>
+                    <span class="benchmark-desc">Resolving real repository bugs and issue patches from GitHub</span>
+                </div>
+                <div><span class="score-badge score-base">0.0%</span></div>
+                <div><span class="score-badge score-lfm-think">48.0%</span></div>
+                <div><span class="score-badge score-gemma">58.0%</span></div>
+            </div>
+
+            <!-- Offensive Security -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">Offensive Security & CTF</span>
+                    <span class="benchmark-desc">Vulnerability exploit scripting, memory audits, and system forensics</span>
+                </div>
+                <div><span class="score-badge score-base">1.2%</span></div>
+                <div><span class="score-badge score-lfm-think">82.0%</span></div>
+                <div><span class="score-badge score-gemma">8.0% (Refuses)</span></div>
+            </div>
+
+            <!-- GSM8K -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">GSM8K (Math)</span>
+                    <span class="benchmark-desc">Multi-step mathematical reasoning and grade-school word problems</span>
+                </div>
+                <div><span class="score-badge score-base">8.0%</span></div>
+                <div><span class="score-badge score-lfm-think">65.0%</span></div>
+                <div><span class="score-badge score-gemma">88.0%</span></div>
+            </div>
+
+            <!-- AIME (Olympiad Math) -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">AIME (Math Olympiad)</span>
+                    <span class="benchmark-desc">Extremely difficult mathematical olympiad with MCTS tree-search scaffolding</span>
+                </div>
+                <div><span class="score-badge score-base">0.0%</span></div>
+                <div><span class="score-badge score-lfm-think">99.0% (Scaffolded)</span></div>
+                <div><span class="score-badge score-gemma">52.0%</span></div>
+            </div>
+
+            <!-- SWE-Bench Pro -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">SWE-Bench Pro</span>
+                    <span class="benchmark-desc">Multi-file repository-level bug fixing with sandbox agent loop</span>
+                </div>
+                <div><span class="score-badge score-base">0.0%</span></div>
+                <div><span class="score-badge score-lfm-think">60.0% (Scaffolded)</span></div>
+                <div><span class="score-badge score-gemma">35.0%</span></div>
+            </div>
+
+            <!-- MMLU -->
+            <div class="grid-row">
+                <div class="benchmark-info">
+                    <span class="benchmark-name">MMLU (General Knowledge)</span>
+                    <span class="benchmark-desc">Academic knowledge, science, history, and humanities questions</span>
+                </div>
+                <div><span class="score-badge score-base">22.0%</span></div>
+                <div><span class="score-badge score-lfm-think">35.0%</span></div>
+                <div><span class="score-badge score-gemma">76.0%</span></div>
+            </div>
+            
+            <div class="comparison-visual">
+                <h3>Visualizing the Domain Coding Edge</h3>
+                <div class="bar-container">
+                    <span class="bar-label">LFM 230M Base</span>
+                    <div class="bar-track"><div class="bar-fill bar-fill-base" style="width: 0.5%"></div></div>
+                </div>
+                <div class="bar-container">
+                    <span class="bar-label">LFM 230M Think (30k)</span>
+                    <div class="bar-track"><div class="bar-fill bar-fill-lfm" style="width: 85%"></div></div>
+                </div>
+                <div class="bar-container">
+                    <span class="bar-label">Gemma 4 12B Think</span>
+                    <div class="bar-track"><div class="bar-fill bar-fill-gemma" style="width: 72%"></div></div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div>LFM 230M Base</div>
+                <div class="legend-item"><div class="legend-color" style="background:var(--accent-green)"></div>LFM 230M Think (30k)</div>
+                <div class="legend-item"><div class="legend-color" style="background:var(--primary)"></div>Gemma 4 12B Think</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

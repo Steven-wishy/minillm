@@ -1,0 +1,18 @@
+{
+  "id": "shakuji/finetuning-v3",
+  "title": "finetuning_v3",
+  "code_file": "finetuning_v3.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "shakuji/minillm-small-dataset"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "accelerator": "nvidiaTeslaT4"
+}

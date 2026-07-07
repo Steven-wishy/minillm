@@ -1,0 +1,24 @@
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Datasets
+*.json
+!kernel-metadata.json
+!dataset-metadata.json
+
+# Model weights & Checkpoints
+checkpoints/
+agi_model_merged_16bit/
+agi_v10_output/
+output/
+
+# API credentials
+kaggleapikey.txt
+kaggle.json
+
+# System files
+.ipynb_checkpoints/
+.DS_Store

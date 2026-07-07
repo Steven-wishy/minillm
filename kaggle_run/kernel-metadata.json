@@ -1,0 +1,18 @@
+{
+  "id": "shakuji/minillm-xsmall-finetuning",
+  "title": "MiniLLM XSmall Finetuning",
+  "code_file": "finetuning_v2_kaggle.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "shakuji/minillm-small-dataset"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "accelerator": "nvidiaTeslaT4"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "shakuji/minillm-v2-test",
+  "title": "MiniLLM V2 Test",
+  "code_file": "finetuning_v2_kaggle.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "accelerator": "nvidiaTeslaT4"
+}
