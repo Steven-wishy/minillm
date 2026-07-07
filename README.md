@@ -4,9 +4,50 @@ This repository contains the progressive architectures and scripts developed to 
 
 ---
 
+## 🏗️ System Architecture
+
+The pipeline uses a hybrid reinforcement learning and supervised learning loop designed to align linear foundation models (LFMs) to follow complex reasoning paths and output valid, verified code.
+
+```mermaid
+graph TD
+    A[Input Prompts] --> B[Trajectory Generation]
+    B -->|Generate Candidates| C[Group Rollouts]
+    C --> D[Secure AST Sandbox]
+    D -->|Executes Code & Verifies Assertions| E[Reward Calculation]
+    E --> F[SimPO Loss Optimization]
+    F -->|Policy Update| G[GRPO Phase Checkpoint]
+    G --> H[SFT Formatting Stabilization]
+    H -->|SFT Checkpoint| I[SLERP Adapter Merge]
+    I --> J[Final Merged Model]
+```
+
+### 1. Model Backbone
+* **Model**: `LiquidAI/LFM2.5-230M-Base` (a linear state-space recurrent architecture offering highly efficient inference memory scaling).
+* **PEFT**: Parameter-efficient adaptation via LoRA targeting the base model's attention-equivalent linear weights.
+
+### 2. Dual-GPU Symmetrical co-training Loop
+The training sequence consists of two primary optimization stages:
+* **Stage 1: GRPO Symmetrical Alignment (Policy Refinement)**
+  * **Group Rollouts**: For each problem, the current policy generates multiple trajectory candidates containing `<conscious_reflection>` thinking traces and `<dream_code>` structural blocks.
+  * **Symmetrical Rewards**:
+    * *Functional Reward*: Earned when generated code executes successfully inside the Sandbox and passes all unit assertions.
+    * *SimPO Optimization*: Direct pairwise ranking comparing successful candidates (winners) with failing candidates (losers) using length-normalized log-probabilities and margin penalties.
+    * *Consistency Constraint*: A regularization penalty ensuring the formatting output distribution doesn't drift too far from the reference structure.
+* **Stage 2: Supervised Fine-Tuning (SFT) Stabilization**
+  * Replays high-quality reasoning trajectories to lock in syntactic token structure (like XML tag nesting and variable output bindings).
+
+### 3. SLERP Merge (Spherical Linear Interpolation)
+Instead of relying on standard averaging, the final weights are produced by executing a **SLERP Merge** on the isolated GRPO and SFT adapter checkpoints. By interpolating weights along a spherical path ($t=0.5$), it preserves the high-dimensional geometric representations of both training stages, blending the formatting precision of SFT with the reasoning alignment of GRPO.
+
+### 4. Secure AST Sandbox
+* **AST Validation**: Code blocks are parsed into Abstract Syntax Trees to verify structure and block unsafe imports/modules before compilation.
+* **Loop Limits**: Injects loop counter transformations directly into the AST structure to intercept and terminate infinite loops, protecting the runner from hanging on buggy candidate logic.
+
+---
+
 ## 🛸 Core Pipeline Iterations (V1, V2, & V3)
 
-The training pipeline evolved over three major iterations, transitioning from basic alignment to advanced, feedback-driven co-training.
+The training pipeline evolved over three major iterations, transitioning from basic SFT alignment to advanced, feedback-driven co-training.
 
 ### 🧬 Version 1: SFT & GRPO Baseline
 * **Code Files**: [`finetuning.py`](file:///sdcard/Download/minillm/finetuning.py) / [`finetuning.ipynb`](file:///sdcard/Download/minillm/finetuning.ipynb)
