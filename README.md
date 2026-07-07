@@ -60,10 +60,22 @@ The training pipeline evolved over three major iterations, transitioning from ba
   * **Execution Mode**: Pushed and executed as a batch job on **Dual Tesla T4 GPUs** (15+ GB VRAM).
   * **Dataset**: Run on the full `dataset_small.json` (600 samples segmented into 510 training / 90 validation).
   * **Duration**: Run successfully for **9.9 hours**.
-  * **Mechanics**:
-    * **SimPO Preference Loss**: Direct pairwise ranking of generated candidates using sequence length normalization and configurable margins.
-    * **Teacher Sandbox**: Executes Python structures in a secure runtime AST environment to output test assertion outcomes.
-    * **SLERP Adapter Merge**: Linear spherical interpolation blending SFT formatting adapter weights with GRPO alignment weights.
+* **Detailed V2 Architecture Breakdown**:
+  * **Phase 1: Batched Trajectory Generation**:
+    * Generates multiple candidate reasoning trajectories per training sample in evaluation mode (inference).
+    * Evaluates each code trajectory inside the secure **Teacher Sandbox** and assigns rewards: `1.0` (Turn 1 functional success), `0.8` (Turn 2 self-correction success after receiving compiler traceback), or `0.0` (failed both turns).
+  * **Phase 2: Active Optimization Sweep (SimPO + SFT Joint Training)**:
+    * Selects the highest-scoring candidate as the winning preference ($y_w$) and the lowest-scoring candidate as the losing preference ($y_l$).
+    * Calculates the length-normalized sequence log-probabilities under the model for both candidates.
+    * Minimizes the **SimPO loss** using a margin penalty scaled by the difference in their reward scores:
+      $$\mathcal{L}_{\text{SimPO}} = -\log \sigma \left( \beta \log \pi_\theta(y_w|x) - \beta \log \pi_\theta(y_l|x) - \gamma \right)$$
+    * Combines the SimPO loss with standard cross-entropy **SFT loss** on the ground-truth target formatting sequence to ensure structural bounds are preserved during alignment.
+  * **Phase 3: SFT Formatting Stabilization (Run 2)**:
+    * Executes a single SFT training epoch over the dataset targets using AdamW with higher weight decay to stabilize grammatical and structural boundaries.
+  * **Phase 4: Spherical Linear Interpolation (SLERP Merge)**:
+    * Performs a SLERP merge of the GRPO/SimPO adapter weights ($W_{\text{Align}}$) and SFT adapter weights ($W_{\text{SFT}}$) at $t=0.5$:
+      $$\text{SLERP}(W_{\text{Align}}, W_{\text{SFT}}; t) = \frac{\sin((1-t)\theta)}{\sin\theta} W_{\text{Align}} + \frac{\sin(t\theta)}{\sin\theta} W_{\text{SFT}}$$
+      This preserves high-dimensional weight geometry, locking in both SFT formatting structure and GRPO preference alignment.
 
 ### 🚀 Version 3: Symmetrical Co-Training & Fallback Engine
 * **Code Files**: [`finetuning_v3.py`](file:///sdcard/Download/minillm/finetuning_v3.py) / [`finetuning_v3.ipynb`](file:///sdcard/Download/minillm/finetuning_v3.ipynb)
