@@ -1,8 +1,8 @@
-import time
 import sys
 import subprocess
-import json
+
 from kaggle.api.kaggle_api_extended import KaggleApi
+from kaggle_utils import stream_kernel_until_complete
 
 def main():
     api = KaggleApi()
@@ -25,34 +25,12 @@ def main():
         print(f"Push failed with exit code {result.returncode}")
         sys.exit(1)
     
-    # Wait for execution and stream logs
     print("Tracking execution status...")
-    last_printed_len = 0
-    
-    while True:
-        status_result = api.kernels_status(kernel_id)
-        if hasattr(status_result, 'status') and hasattr(status_result.status, 'name'):
-            status = status_result.status.name.lower()
-        elif hasattr(status_result, 'status'):
-            status = str(status_result.status).lower()
-        else:
-            status = 'unknown'
-        print(f"\n[Status Update: {status}]")
-        
-        try:
-            log_text = api.kernels_logs(kernel_id)
-            if log_text and len(log_text) > last_printed_len:
-                new_text = log_text[last_printed_len:]
-                print(new_text, end="")
-                last_printed_len = len(log_text)
-                sys.stdout.flush()
-        except Exception as e:
-            pass
-            
-        if status in ['complete', 'error', 'cancel', 'cancelled', 'failure']:
-            break
-            
-        time.sleep(20)
+    try:
+        stream_kernel_until_complete(api, kernel_id, poll_interval=20)
+    except RuntimeError as error:
+        print(error)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
