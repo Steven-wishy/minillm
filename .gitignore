@@ -22,3 +22,10 @@ kaggle.json
 # System files
 .ipynb_checkpoints/
 .DS_Store
+
+# Test / coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+coverage.xml
