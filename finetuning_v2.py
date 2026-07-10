@@ -1567,7 +1567,7 @@ def launch_gradio_interactive_ui(model, tokenizer, search_adapter: RealSearchAda
         reset_btn.click(lambda: None, None, chatbot, queue=False)
 
     print("[INFO] Spinning up interactive web UI local server...")
-    agi_ui.queue(default_concurrency_limit=1).launch(share=True)
+    agi_ui.queue(default_concurrency_limit=1).launch(share=os.environ.get('GRADIO_SHARE', 'false').lower() in ('1', 'true', 'yes'), auth=((os.environ.get('GRADIO_AUTH_USER'), os.environ.get('GRADIO_AUTH_PASS')) if os.environ.get('GRADIO_AUTH_USER') and os.environ.get('GRADIO_AUTH_PASS') else None))
 
 
 if __name__ == "__main__":
