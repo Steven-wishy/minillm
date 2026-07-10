@@ -5,7 +5,6 @@ import urllib.request
 import random
 import math
 
-print("Initializing deduplicated real-world dataset compiler...")
 
 # ==============================================================================
 # 1. Base Complex App Templates (Taxonomy Aligned: math, coding, security, systems, frontend, tools, reasoning)
@@ -1489,107 +1488,116 @@ def deduplicate_dataset(dataset: list) -> list:
             deduped.append(item)
     return deduped
 
-# ==============================================================================
-# 5. Compile and Write Datasets
-# ==============================================================================
 
-# Fetch online resources (request ample samples to ensure large dataset gets filled after deduplication)
-gpt_samples_large = fetch_gpt5_5_samples(25000)
-fable_samples = fetch_fable_traces(200)
-swe_samples = fetch_swe_bench_samples(300)
+def main():
+    print("Initializing deduplicated real-world dataset compiler...")
 
-# Build custom items using dynamic indices up to 3000 to ensure uniqueness across large scale
-custom_items = []
-print("Generating dynamically indexed custom items (0 to 3000)...")
-for i in range(3000):
-    # Old categories aligned to new taxonomy
-    custom_items.append(get_3d_renderer_app_template(i))
-    custom_items.append(get_frontend_dashboard_template(i))
-    custom_items.append(get_arcade_game_template(i))
-    custom_items.append(get_sqlite_rest_api_template(i))
-    custom_items.append(get_vulnerability_remediation_template(i))
-    custom_items.append(get_tool_use_search_template(i))
-    custom_items.append(get_threejs_template(i))
-    custom_items.append(get_openscad_template(i))
-    custom_items.append(get_blender_template(i))
-    custom_items.append(get_general_python_template(i))
-    
-    # New hard real-world categories
-    custom_items.append(get_math_proof_template(i))
-    custom_items.append(get_debugging_transcript_template(i))
-    custom_items.append(get_security_investigation_template(i))
-    custom_items.append(get_multistep_tool_template(i))
-    custom_items.append(get_rl_trace_template(i))
+    # ==============================================================================
+    # 5. Compile and Write Datasets
+    # ==============================================================================
 
-# Load curated items
-curated_items = []
-try:
-    with open("/sdcard/Download/minillm/dataset_custom_curated.json", "r", encoding="utf-8") as f:
-        curated_items = json.load(f)
-    print(f"Successfully loaded {len(curated_items)} custom curated items.")
-except Exception as e:
-    print(f"Error loading curated items: {e}")
+    # Fetch online resources (request ample samples to ensure large dataset gets filled after deduplication)
+    gpt_samples_large = fetch_gpt5_5_samples(25000)
+    fable_samples = fetch_fable_traces(200)
+    swe_samples = fetch_swe_bench_samples(300)
 
-# Create Small Dataset (Target size: ~500–600 deduped samples)
-small_pool = curated_items + custom_items[:300] + gpt_samples_large[:300] + fable_samples * 5
-small_deduped = deduplicate_dataset(small_pool)
-random.shuffle(small_deduped)
-small_final = small_deduped[:600]
+    # Build custom items using dynamic indices up to 3000 to ensure uniqueness across large scale
+    custom_items = []
+    print("Generating dynamically indexed custom items (0 to 3000)...")
+    for i in range(3000):
+        # Old categories aligned to new taxonomy
+        custom_items.append(get_3d_renderer_app_template(i))
+        custom_items.append(get_frontend_dashboard_template(i))
+        custom_items.append(get_arcade_game_template(i))
+        custom_items.append(get_sqlite_rest_api_template(i))
+        custom_items.append(get_vulnerability_remediation_template(i))
+        custom_items.append(get_tool_use_search_template(i))
+        custom_items.append(get_threejs_template(i))
+        custom_items.append(get_openscad_template(i))
+        custom_items.append(get_blender_template(i))
+        custom_items.append(get_general_python_template(i))
 
-with open("/sdcard/Download/minillm/dataset_small.json", "w", encoding="utf-8") as f:
-    json.dump(small_final, f, indent=1, ensure_ascii=False)
-print(f"dataset_small.json created with {len(small_final)} deduped entries.")
+        # New hard real-world categories
+        custom_items.append(get_math_proof_template(i))
+        custom_items.append(get_debugging_transcript_template(i))
+        custom_items.append(get_security_investigation_template(i))
+        custom_items.append(get_multistep_tool_template(i))
+        custom_items.append(get_rl_trace_template(i))
 
-# Create Medium Dataset (Target size: ~2,000 deduped samples)
-medium_pool = curated_items + swe_samples[:50] + custom_items[:1200] + gpt_samples_large[:1500] + fable_samples * 15
-medium_deduped = deduplicate_dataset(medium_pool)
-random.shuffle(medium_deduped)
-medium_final = medium_deduped[:2000]
+    # Load curated items
+    curated_items = []
+    try:
+        with open("/sdcard/Download/minillm/dataset_custom_curated.json", "r", encoding="utf-8") as f:
+            curated_items = json.load(f)
+        print(f"Successfully loaded {len(curated_items)} custom curated items.")
+    except Exception as e:
+        print(f"Error loading curated items: {e}")
 
-with open("/sdcard/Download/minillm/dataset_medium.json", "w", encoding="utf-8") as f:
-    json.dump(medium_final, f, indent=1, ensure_ascii=False)
-print(f"dataset_medium.json created with {len(medium_final)} deduped entries.")
+    # Create Small Dataset (Target size: ~500–600 deduped samples)
+    small_pool = curated_items + custom_items[:300] + gpt_samples_large[:300] + fable_samples * 5
+    small_deduped = deduplicate_dataset(small_pool)
+    random.shuffle(small_deduped)
+    small_final = small_deduped[:600]
 
-# Create Large Dataset (Target size: ~6,000 deduped samples)
-large_pool = curated_items + swe_samples[:150] + custom_items[:5000] + gpt_samples_large[:5000] + fable_samples * 50
-large_deduped = deduplicate_dataset(large_pool)
-random.shuffle(large_deduped)
-large_final = large_deduped[:6000]
+    with open("/sdcard/Download/minillm/dataset_small.json", "w", encoding="utf-8") as f:
+        json.dump(small_final, f, indent=1, ensure_ascii=False)
+    print(f"dataset_small.json created with {len(small_final)} deduped entries.")
 
-with open("/sdcard/Download/minillm/dataset_large.json", "w", encoding="utf-8") as f:
-    json.dump(large_final, f, indent=1, ensure_ascii=False)
-print(f"dataset_large.json created with {len(large_final)} deduped entries.")
+    # Create Medium Dataset (Target size: ~2,000 deduped samples)
+    medium_pool = curated_items + swe_samples[:50] + custom_items[:1200] + gpt_samples_large[:1500] + fable_samples * 15
+    medium_deduped = deduplicate_dataset(medium_pool)
+    random.shuffle(medium_deduped)
+    medium_final = medium_deduped[:2000]
 
-# Create XSmall Dataset (Target size: exactly 50 deduped samples)
-xsmall_pool = curated_items + custom_items[:50] + gpt_samples_large[:30] + fable_samples
-xsmall_deduped = deduplicate_dataset(xsmall_pool)
-random.shuffle(xsmall_deduped)
-xsmall_final = xsmall_deduped[:50]
+    with open("/sdcard/Download/minillm/dataset_medium.json", "w", encoding="utf-8") as f:
+        json.dump(medium_final, f, indent=1, ensure_ascii=False)
+    print(f"dataset_medium.json created with {len(medium_final)} deduped entries.")
 
-with open("/sdcard/Download/minillm/dataset_xsmall.json", "w", encoding="utf-8") as f:
-    json.dump(xsmall_final, f, indent=1, ensure_ascii=False)
-print(f"dataset_xsmall.json created with {len(xsmall_final)} deduped entries.")
+    # Create Large Dataset (Target size: ~6,000 deduped samples)
+    large_pool = curated_items + swe_samples[:150] + custom_items[:5000] + gpt_samples_large[:5000] + fable_samples * 50
+    large_deduped = deduplicate_dataset(large_pool)
+    random.shuffle(large_deduped)
+    large_final = large_deduped[:6000]
 
-# Create 30k Dataset (Target size: exactly 30,000 deduped samples)
-v2_pool = curated_items + swe_samples + custom_items + gpt_samples_large + fable_samples * 10
-v2_deduped = deduplicate_dataset(v2_pool)
-random.shuffle(v2_deduped)
-v2_final = v2_deduped[:30000]
+    with open("/sdcard/Download/minillm/dataset_large.json", "w", encoding="utf-8") as f:
+        json.dump(large_final, f, indent=1, ensure_ascii=False)
+    print(f"dataset_large.json created with {len(large_final)} deduped entries.")
 
-with open("/sdcard/Download/minillm/dataset_30k.json", "w", encoding="utf-8") as f:
-    json.dump(v2_final, f, indent=1, ensure_ascii=False)
-print(f"dataset_30k.json created with {len(v2_final)} deduped entries.")
+    # Create XSmall Dataset (Target size: exactly 50 deduped samples)
+    xsmall_pool = curated_items + custom_items[:50] + gpt_samples_large[:30] + fable_samples
+    xsmall_deduped = deduplicate_dataset(xsmall_pool)
+    random.shuffle(xsmall_deduped)
+    xsmall_final = xsmall_deduped[:50]
 
-# Print line metrics and verify taxonomy domain set
-with open("/sdcard/Download/minillm/dataset_30k.json", "r", encoding="utf-8") as f:
-    v2_lines = len(f.readlines())
-with open("/sdcard/Download/minillm/dataset_small.json", "r", encoding="utf-8") as f:
-    small_lines = len(f.readlines())
-print(f"dataset_small.json lines: {small_lines}")
-print(f"dataset_30k.json lines: {v2_lines}")
+    with open("/sdcard/Download/minillm/dataset_xsmall.json", "w", encoding="utf-8") as f:
+        json.dump(xsmall_final, f, indent=1, ensure_ascii=False)
+    print(f"dataset_xsmall.json created with {len(xsmall_final)} deduped entries.")
 
-# Print taxonomy verification
-domains_found = set(item['domain'] for item in v2_final)
-print("Taxonomy domains found in dataset_30k.json:", domains_found)
+    # Create 30k Dataset (Target size: exactly 30,000 deduped samples)
+    v2_pool = curated_items + swe_samples + custom_items + gpt_samples_large + fable_samples * 10
+    v2_deduped = deduplicate_dataset(v2_pool)
+    random.shuffle(v2_deduped)
+    v2_final = v2_deduped[:30000]
 
-print("All deduplicated real-world datasets (including 30k) successfully generated!")
+    with open("/sdcard/Download/minillm/dataset_30k.json", "w", encoding="utf-8") as f:
+        json.dump(v2_final, f, indent=1, ensure_ascii=False)
+    print(f"dataset_30k.json created with {len(v2_final)} deduped entries.")
+
+    # Print line metrics and verify taxonomy domain set
+    with open("/sdcard/Download/minillm/dataset_30k.json", "r", encoding="utf-8") as f:
+        v2_lines = len(f.readlines())
+    with open("/sdcard/Download/minillm/dataset_small.json", "r", encoding="utf-8") as f:
+        small_lines = len(f.readlines())
+    print(f"dataset_small.json lines: {small_lines}")
+    print(f"dataset_30k.json lines: {v2_lines}")
+
+    # Print taxonomy verification
+    domains_found = set(item['domain'] for item in v2_final)
+    print("Taxonomy domains found in dataset_30k.json:", domains_found)
+
+    print("All deduplicated real-world datasets (including 30k) successfully generated!")
+
+
+
+if __name__ == "__main__":
+    main()
