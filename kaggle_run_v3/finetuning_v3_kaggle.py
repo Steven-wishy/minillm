@@ -201,8 +201,8 @@ except ImportError:
 # Enable Unsloth's optimized reinforcement learning kernels to save VRAM on the T4 GPU
 try:
     PatchFastRL("GRPO", FastLanguageModel)
-except Exception:
-    pass
+except Exception as _err:
+    logger.debug(f"Ignoring non-fatal error during [PatchFastRL('GRPO', FastLanguageModel)]: {_err}")
 
 
 # ==============================================================================
@@ -817,8 +817,8 @@ def soft_json_parse(json_str: str) -> Dict[str, Any]:
             res = safe_literal_dict_eval(tree)
             if isinstance(res, dict):
                 return res
-        except Exception:
-            pass
+        except Exception as _err:
+            logger.debug(f"Ignoring non-fatal error during [tree = ast.parse(cleaned, mode='eval')]: {_err}")
     return {}
 
 
@@ -1122,14 +1122,14 @@ def run_symmetrical_agi_pipeline(custom_dataset_path: str = None, config: Traini
     # ----------------------------------------------------------------------
     try:
         FastLanguageModel.for_inference(model_gpu0)
-    except Exception:
-        pass
+    except Exception as _err:
+        logger.debug(f"Ignoring non-fatal error during [FastLanguageModel.for_inference(model_gpu0)]: {_err}")
     model_gpu0.eval()
     if model_gpu1 is not model_gpu0:
         try:
             FastLanguageModel.for_inference(model_gpu1)
-        except Exception:
-            pass
+        except Exception as _err:
+            logger.debug(f"Ignoring non-fatal error during [FastLanguageModel.for_inference(model_gpu1)]: {_err}")
         model_gpu1.eval()
         
     batched_trajectories = []
@@ -1250,8 +1250,8 @@ def run_symmetrical_agi_pipeline(custom_dataset_path: str = None, config: Traini
     # ----------------------------------------------------------------------
     try:
         FastLanguageModel.for_training(model_gpu0)
-    except Exception:
-        pass
+    except Exception as _err:
+        logger.debug(f"Ignoring non-fatal error during [FastLanguageModel.for_training(model_gpu0)]: {_err}")
     model_gpu0.train()
     optimizer.zero_grad()
     
@@ -1334,8 +1334,8 @@ def run_symmetrical_agi_pipeline(custom_dataset_path: str = None, config: Traini
     optimizer = AdamW(model_gpu0.parameters(), lr=config.learning_rate * 0.8, weight_decay=config.weight_decay * 5)
     try:
         FastLanguageModel.for_training(model_gpu0)
-    except Exception:
-        pass
+    except Exception as _err:
+        logger.debug(f"Ignoring non-fatal error during [FastLanguageModel.for_training(model_gpu0)]: {_err}")
     model_gpu0.train()
     optimizer.zero_grad()
     
@@ -1395,8 +1395,8 @@ def run_symmetrical_agi_pipeline(custom_dataset_path: str = None, config: Traini
     print("="*80)
     try:
         FastLanguageModel.for_inference(model_gpu0)
-    except Exception:
-        pass
+    except Exception as _err:
+        logger.debug(f"Ignoring non-fatal error during [FastLanguageModel.for_inference(model_gpu0)]: {_err}")
     model_gpu0.eval()
     eval_successes = 0
     

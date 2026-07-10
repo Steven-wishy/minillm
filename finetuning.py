@@ -671,8 +671,8 @@ def soft_json_parse(json_str: str) -> Dict[str, Any]:
             res = safe_literal_dict_eval(tree)
             if isinstance(res, dict):
                 return res
-        except Exception:
-            pass
+        except Exception as _err:
+            logger.debug(f"Ignoring non-fatal error during [tree = ast.parse(cleaned, mode='eval')]: {_err}")
     return {}
 
 

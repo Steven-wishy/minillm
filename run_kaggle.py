@@ -47,7 +47,8 @@ def main():
                 last_printed_len = len(log_text)
                 sys.stdout.flush()
         except Exception as e:
-            pass
+            print(f"[Warning] Failed to fetch kernel logs this cycle: {e}", file=sys.stderr)
+            sys.stderr.flush()
             
         if status in ['complete', 'error', 'cancel', 'cancelled', 'failure']:
             break

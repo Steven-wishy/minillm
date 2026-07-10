@@ -36,8 +36,10 @@ def main():
                     last_printed_len = len(log_text)
                     sys.stdout.flush()
             except Exception as e:
-                # Log reading error is non-fatal
-                pass
+                # Log reading error is non-fatal, but surface it so silent
+                # log-streaming gaps are diagnosable.
+                print(f"[Warning] Failed to fetch kernel logs this cycle: {e}", file=sys.stderr)
+                sys.stderr.flush()
                 
             if status in ['complete', 'error', 'cancel', 'cancelled', 'failure']:
                 print(f"\n[Terminating tracking: final status is '{status}']")
